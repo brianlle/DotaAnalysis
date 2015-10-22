@@ -60,6 +60,47 @@ def retrieve_all_match_IDs(playerID,key):
         
     return matchIDList
 
+def create_dota_dataframe(matchDetailsList):
+    
+    '''
+    Takes in list of match detail json strings and converts
+    into a pandas dataframe for easier statistical manipulation
+    '''
+
+    playerID = []                 #initialize lists for stats of interest
+    playerSlot = []
+    playerKills = []
+    playerDeaths = []
+    playerAssists = []
+    gameWonStatus = []
+    matchID = []
+    matchLength = []
+    matchCounter = []
+
+    for match in matchDetailsList:    #construct lists
+        for player in match['result']['players']:
+            playerID.append(player['account_id'])
+            playerSlot.append(player['player_slot'])
+            playerKills.append(player['kills'])
+            playerDeaths.append(player['deaths'])
+            playerAssists.append(player['assists'])
+            matchLength.append(match['result']['duration'])
+        
+            if ((player['player_slot'] == 0) or (player['player_slot'] == 1) or (player['player_slot'] == 2) or (player['player_slot'] == 3) or (player['player_slot'] == 4)) and match['result']['radiant_win'] == True:
+                gameWonStatus.append(1)
+            elif ((player['player_slot'] == 128) or (player['player_slot'] == 129) or (player['player_slot'] == 130) or (player['player_slot'] == 131) or (player['player_slot'] == 132)) and match['result']['radiant_win'] == False:
+                gameWonStatus.append(1)
+            else:
+                gameWonStatus.append(0)
+            matchID.append(match['result']['match_id'])
+            matchCounter.append(1)
+
+    #construct dictionary to build data frame
+    referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
+    dataFrameSummary = pd.DataFrame(data=referenceDict)
+
+    return dataFrameSummary
+
 def get_stats(interestedPlayer, dataSummary):
     '''
     Reads in a dataframe and pumps out interesting/funny statistics about a player
@@ -100,6 +141,8 @@ def get_stats(interestedPlayer, dataSummary):
     
     return None
 
+
+
 matchIDList = retrieve_all_match_IDs('76561198006933710',key)
 
 matchDetails = []
@@ -110,36 +153,6 @@ for match in matchIDList:
 matchDetails[:] = [match for match in matchDetails if ('result' in match)]             #removes erroneous matches as some are special matches
 matchDetails[:] = [match for match in matchDetails if ('players' in match['result'])]  #without the same parameters
 
-playerID = []                 #initialize lists for stats of interest
-playerSlot = []
-playerKills = []
-playerDeaths = []
-playerAssists = []
-gameWonStatus = []
-matchID = []
-matchLength = []
-matchCounter = []
+dotaDataFrame = create_dota_dataframe(matchDetails)
 
-for match in matchDetails:    #construct lists
-    for player in match['result']['players']:
-        playerID.append(player['account_id'])
-        playerSlot.append(player['player_slot'])
-        playerKills.append(player['kills'])
-        playerDeaths.append(player['deaths'])
-        playerAssists.append(player['assists'])
-        matchLength.append(match['result']['duration'])
-        
-        if ((player['player_slot'] == 0) or (player['player_slot'] == 1) or (player['player_slot'] == 2) or (player['player_slot'] == 3) or (player['player_slot'] == 4)) and match['result']['radiant_win'] == True:
-            gameWonStatus.append(1)
-        elif ((player['player_slot'] == 128) or (player['player_slot'] == 129) or (player['player_slot'] == 130) or (player['player_slot'] == 131) or (player['player_slot'] == 132)) and match['result']['radiant_win'] == False:
-            gameWonStatus.append(1)
-        else:
-            gameWonStatus.append(0)
-        matchID.append(match['result']['match_id'])
-        matchCounter.append(1)
-
-#construct dictionary to build data frame
-referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
-dataFrameSummary = pd.DataFrame(data=referenceDict)
-
-get_stats(30999748,dataFrameSummary)    #get some fun stats about player '30999748' aka feeder
+get_stats(30999748,dotaDataFrame)    #get some fun stats about player '30999748' aka feeder
