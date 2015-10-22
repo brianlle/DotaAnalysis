@@ -69,15 +69,34 @@ def get_stats(interestedPlayer, dataSummary):
     interestedPlayer (str): numerical player ID as stored by steam API information
     dataSummary (dataframe): dataframe of data compiled from match history information
     
+    Returns nothing, but prints out:
+        Average deaths per minute in losses
+        Average deaths per minute in wins
+        Win-loss record when playing with me
+        Average game length of wins (with me)
+        Average game length of losses (with me)
+        Average KDA over all games as Blue player (player slot 0)
+        Total number of deaths over all games as Pink player (player slot 128)
+    
     '''
     
     tempDF = dataSummary.groupby(['Player ID', 'Win Y/N']).aggregate(sum)
     averageDPMinLoss = tempDF.loc[interestedPlayer, 0]['Deaths']/tempDF.loc[interestedPlayer, 0]['Match Length (s)'] * 60
     averageDPMinWin = tempDF.loc[interestedPlayer, 1]['Deaths']/tempDF.loc[interestedPlayer, 1]['Match Length (s)'] * 60
+    averageWinLength = tempDF.loc[interestedPlayer, 1]['Match Length (s)']/tempDF.loc[interestedPlayer, 1]['Match Counter']
+    averageLossLength = tempDF.loc[interestedPlayer, 0]['Match Length (s)']/tempDF.loc[interestedPlayer, 0]['Match Counter']
+    
+    tempDF2 = dataSummary.groupby(['Player ID', 'Player Slot']).aggregate(sum)
+    blueKDA = (tempDF2.loc[interestedPlayer, 0]['Kills']+tempDF2.loc[interestedPlayer, 0]['Assists'])/tempDF2.loc[interestedPlayer, 0]['Deaths']
+    pinkTotalDeaths = tempDF2.loc[interestedPlayer, 0]['Deaths']
     
     print('Player\'s average deaths per minute in losses is %s over %s matches' % (averageDPMinLoss, tempDF.loc[interestedPlayer, 0]['Match Counter']))
     print('Player\'s average deaths per minute in wins is %s over %s matches' % (averageDPMinWin, tempDF.loc[interestedPlayer, 1]['Match Counter']))
     print('Player\'s win-loss when playing with you: ' + str(tempDF.loc[interestedPlayer,1]['Match Counter']) + '-' + str(tempDF.loc[interestedPlayer,0]['Match Counter']))
+    print('Player\'s average game length when winning with you: %s' %averageWinLength)
+    print('Player\'s average game length when losing with you: %s' %averageLossLength)
+    print('Average KDA as Blue: %s' % blueKDA)
+    print('Total deaths as Pink: %s' % pinkTotalDeaths)
     
     return None
 
