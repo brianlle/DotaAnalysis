@@ -41,7 +41,7 @@ def retrieve_match_IDs_by_hero(playerID,key,heroID,startAtMatch='0'):
     if len(resultJ['result']['matches']) == 100:    #if pulled full 100 matches, request next set of 100 until all matches retrieved
         newStart = matchIDList[-1]-1
         matchIDList = matchIDList + retrieve_match_IDs_by_hero(playerID,key,heroID,newStart)
-        time.sleep(1.5)        #to avoid rejection from calling API too often
+        time.sleep(2)        #to avoid rejection from calling API too often
     
     return matchIDList
 
@@ -124,8 +124,8 @@ def get_stats(interestedPlayer, dataSummary):
     '''
     
     tempDF = dataSummary.groupby(['Player ID', 'Win Y/N']).aggregate(sum)
-    averageDPMinLoss = float(tempDF.loc[interestedPlayer, 0]['Deaths'])/tempDF.loc[interestedPlayer, 0]['Match Length (s)'] * 60.0
     averageDPMinWin = float(tempDF.loc[interestedPlayer, 1]['Deaths'])/tempDF.loc[interestedPlayer, 1]['Match Length (s)'] * 60.0
+    averageDPMinLoss = float(tempDF.loc[interestedPlayer, 0]['Deaths'])/tempDF.loc[interestedPlayer, 0]['Match Length (s)'] * 60.0
     averageWinLength = tempDF.loc[interestedPlayer, 1]['Match Length (s)']/tempDF.loc[interestedPlayer, 1]['Match Counter']
     averageLossLength = tempDF.loc[interestedPlayer, 0]['Match Length (s)']/tempDF.loc[interestedPlayer, 0]['Match Counter']
     
@@ -134,9 +134,9 @@ def get_stats(interestedPlayer, dataSummary):
     pinkTotalDeaths = tempDF2.loc[interestedPlayer, 0]['Deaths']
     
     print('Player\'s ID: %s' % interestedPlayer)
-    print('Player\'s average deaths per minute in losses is %s over %s matches' % (averageDPMinLoss, tempDF.loc[interestedPlayer, 0]['Match Counter']))
-    print('Player\'s average deaths per minute in wins is %s over %s matches' % (averageDPMinWin, tempDF.loc[interestedPlayer, 1]['Match Counter']))
     print('Player\'s win-loss when playing with you: ' + str(tempDF.loc[interestedPlayer,1]['Match Counter']) + '-' + str(tempDF.loc[interestedPlayer,0]['Match Counter']))
+    print('Player\'s average deaths per minute in wins is %s over %s matches' % (averageDPMinWin, tempDF.loc[interestedPlayer, 1]['Match Counter']))
+    print('Player\'s average deaths per minute in losses is %s over %s matches' % (averageDPMinLoss, tempDF.loc[interestedPlayer, 0]['Match Counter']))
     print('Player\'s average game length when winning with you: %s seconds' %averageWinLength)
     print('Player\'s average game length when losing with you: %s seconds' %averageLossLength)
     print('Player\'s average KDA as Blue: %s' % blueKDA)
@@ -152,10 +152,10 @@ matchDetails = []
 for match in matchIDList:
     rTemp = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=%s&key=%s' % (match, key))
     matchDetails.append(json.loads(rTemp.text))
-    time.sleep(1.5)
+    time.sleep(2)
 
 matchDetails[:] = [match for match in matchDetails if ('result' in match)]             #removes erroneous matches as some are special matches
-matchDetails[:] = [match for match in matchDetails if ('players' in match['result'])]  #without the same parameters
+matchDetails[:] = [match for match in matchDetails if ('players' in match['result'])]  #without the same dictionary entries
 
 dotaDataFrame = create_dota_dataframe(matchDetails)
 
