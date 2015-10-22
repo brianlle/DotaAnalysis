@@ -4,18 +4,12 @@ import numpy as np
 import pandas as pd
 import argparse
 
-parser = argparse.ArgumentParser(description="What the application does")
+parser = argparse.ArgumentParser(description="Pulls Dota 2 API information on matches")
 parser.add_argument("-k", "--key", help="Steam API key", required=True)
 args = parser.parse_args()
 
-
-
-
-key = args.key     #enter personal Steam WebAPI key here
-playerID = '76561198006933710'               #enter Steam playerID to only find matches for that player
-
-
-
+key = args.key                          #personal Steam WebAPI key
+playerID = '76561198006933710'          #enter Steam playerID to only find matches for that player
 
 def retrieve_match_IDs_by_hero(playerID,key,heroID,startAtMatch='0'):
     '''
@@ -35,7 +29,6 @@ def retrieve_match_IDs_by_hero(playerID,key,heroID,startAtMatch='0'):
                         one to be used in function recursion.
     heroID (str): Hero numerical identifier to serach matches where playerID played heroID.
                   Default of 0 searches by any hero.
-    
     '''
     
     r = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?matches_requested=100&account_id=%s&key=%s&start_at_match_id=%s&hero_id=%s' % (playerID, key, startAtMatch, heroID))
@@ -49,8 +42,6 @@ def retrieve_match_IDs_by_hero(playerID,key,heroID,startAtMatch='0'):
         matchIDList = matchIDList + retrieve_match_IDs_by_hero(playerID,key,heroID,newStart)
     
     return matchIDList
-
-
 
 
 def retrieve_all_match_IDs(playerID,key):
@@ -68,85 +59,6 @@ def retrieve_all_match_IDs(playerID,key):
         matchIDList = matchIDList + retrieve_match_IDs_by_hero(playerID,key,str(hero),'0')
         
     return matchIDList
-
-
-
-
-matchIDList = retrieve_all_match_IDs('76561198006933710',key)
-
-
-
-
-len(matchIDList)
-
-
-
-
-
-
-
-
-
-matchDetails = []
-for match in matchIDList:
-    rTemp = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=%s&key=%s' % (match, key))
-    matchDetails.append(json.loads(rTemp.text))
-
-
-
-
-matchDetails[:] = [match for match in matchDetails if ('result' in match)]             #removes erroneous matches
-matchDetails[:] = [match for match in matchDetails if ('players' in match['result'])]
-
-
-
-
-len(matchDetails)
-
-
-
-
-
-
-
-
-
-playerID = []
-playerSlot = []
-playerKills = []
-playerDeaths = []
-playerAssists = []
-gameWonStatus = []
-matchID = []
-matchLength = []
-matchCounter = []
-
-for match in matchDetails:
-    for player in match['result']['players']:
-        playerID.append(player['account_id'])
-        playerSlot.append(player['player_slot'])
-        playerKills.append(player['kills'])
-        playerDeaths.append(player['deaths'])
-        playerAssists.append(player['assists'])
-        matchLength.append(match['result']['duration'])
-        
-        if ((player['player_slot'] == 0) or (player['player_slot'] == 1) or (player['player_slot'] == 2) or (player['player_slot'] == 3) or (player['player_slot'] == 4)) and match['result']['radiant_win'] == True:
-            gameWonStatus.append(1)
-        elif ((player['player_slot'] == 128) or (player['player_slot'] == 129) or (player['player_slot'] == 130) or (player['player_slot'] == 131) or (player['player_slot'] == 132)) and match['result']['radiant_win'] == False:
-            gameWonStatus.append(1)
-        else:
-            gameWonStatus.append(0)
-        matchID.append(match['result']['match_id'])
-        matchCounter.append(1)
-
-
-
-
-referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
-dataFrameSummary = pd.DataFrame(data=referenceDict)
-
-
-
 
 def get_stats(interestedPlayer, dataSummary):
     '''
@@ -169,18 +81,46 @@ def get_stats(interestedPlayer, dataSummary):
     
     return None
 
+matchIDList = retrieve_all_match_IDs('76561198006933710',key)
 
+matchDetails = []
+for match in matchIDList:
+    rTemp = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=%s&key=%s' % (match, key))
+    matchDetails.append(json.loads(rTemp.text))
 
+matchDetails[:] = [match for match in matchDetails if ('result' in match)]             #removes erroneous matches as some are special matches
+matchDetails[:] = [match for match in matchDetails if ('players' in match['result'])]  #without the same parameters
 
-get_stats(30999748,dataFrameSummary)
+playerID = []                 #initialize lists for stats of interest
+playerSlot = []
+playerKills = []
+playerDeaths = []
+playerAssists = []
+gameWonStatus = []
+matchID = []
+matchLength = []
+matchCounter = []
 
+for match in matchDetails:    #construct lists
+    for player in match['result']['players']:
+        playerID.append(player['account_id'])
+        playerSlot.append(player['player_slot'])
+        playerKills.append(player['kills'])
+        playerDeaths.append(player['deaths'])
+        playerAssists.append(player['assists'])
+        matchLength.append(match['result']['duration'])
+        
+        if ((player['player_slot'] == 0) or (player['player_slot'] == 1) or (player['player_slot'] == 2) or (player['player_slot'] == 3) or (player['player_slot'] == 4)) and match['result']['radiant_win'] == True:
+            gameWonStatus.append(1)
+        elif ((player['player_slot'] == 128) or (player['player_slot'] == 129) or (player['player_slot'] == 130) or (player['player_slot'] == 131) or (player['player_slot'] == 132)) and match['result']['radiant_win'] == False:
+            gameWonStatus.append(1)
+        else:
+            gameWonStatus.append(0)
+        matchID.append(match['result']['match_id'])
+        matchCounter.append(1)
 
+#construct dictionary to build data frame
+referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
+dataFrameSummary = pd.DataFrame(data=referenceDict)
 
-
-len(matchDetails)
-
-
-
-
-
-
+get_stats(30999748,dataFrameSummary)    #get some fun stats about player '30999748' aka feeder
