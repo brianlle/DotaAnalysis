@@ -55,7 +55,7 @@ def retrieve_all_match_IDs(playerID,key):
     matchIDList = []
     heroRange = list(range(1,113))   #heroIDs range from 1 to 112 currently
     heroRange.remove(24)             #no hero with ID 24... strangely
-    heroRange.remove(108)            #no hero with ID 108 yet, probalby Pitlord or Arc Warden
+    heroRange.remove(108)            #no hero with ID 108 yet, probably Pitlord or Arc Warden
     
     for hero in heroRange:
         matchIDList = matchIDList + retrieve_match_IDs_by_hero(playerID,key,str(hero),'0')
