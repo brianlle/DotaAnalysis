@@ -159,6 +159,9 @@ matchDetails[:] = [match for match in matchDetails if ('players' in match['resul
 
 dotaDataFrame = create_dota_dataframe(matchDetails)
 
-dotaDataFrame.to_csv('matchhistory.csv', encoding='utf-8')   #save match summary so we don't have to call the API again if we don't have to
+with open('matchdetails.txt', 'w') as text:                 #save raw json data so we don't have to call the API again for same data
+    json.dump(matchDetails, text)
+
+dotaDataFrame.to_csv('matchhistory.csv', encoding='utf-8')   #save filtered match summary information
 
 get_stats(30999748,dotaDataFrame)    #get some fun stats about player '30999748' aka feeder
