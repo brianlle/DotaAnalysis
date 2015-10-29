@@ -74,6 +74,8 @@ def create_dota_dataframe(matchDetailsList):
     playerKills = []
     playerDeaths = []
     playerAssists = []
+    playerGPM = []
+    playerXPM = []
     gameWonStatus = []
     matchID = []
     matchLength = []
@@ -86,7 +88,8 @@ def create_dota_dataframe(matchDetailsList):
             playerKills.append(player['kills'])
             playerDeaths.append(player['deaths'])
             playerAssists.append(player['assists'])
-            matchLength.append(match['result']['duration'])
+            playerGPM.append(player['gold_per_min'])
+            playerXPM.append(player['xp_per_min'])
         
             if ((player['player_slot'] == 0) or (player['player_slot'] == 1) or (player['player_slot'] == 2) or (player['player_slot'] == 3) or (player['player_slot'] == 4)) and match['result']['radiant_win'] == True:
                 gameWonStatus.append(1)
@@ -95,10 +98,11 @@ def create_dota_dataframe(matchDetailsList):
             else:
                 gameWonStatus.append(0)
             matchID.append(match['result']['match_id'])
+            matchLength.append(match['result']['duration'])
             matchCounter.append(1)
 
     #construct dictionary to build data frame
-    referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
+    referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'GPM': playerGPM, 'XPM': playerXPM, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
     dataFrameSummary = pd.DataFrame(data=referenceDict)
 
     return dataFrameSummary
