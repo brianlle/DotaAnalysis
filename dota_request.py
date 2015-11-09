@@ -41,7 +41,7 @@ def retrieve_match_IDs_by_hero(playerID,key,heroID,startAtMatch='0'):
     if len(resultJ['result']['matches']) == 100:    #if pulled full 100 matches, request next set of 100 until all matches retrieved
         newStart = matchIDList[-1]-1
         matchIDList = matchIDList + retrieve_match_IDs_by_hero(playerID,key,heroID,newStart)
-        time.sleep(2)        #to avoid rejection from calling API too often
+        time.sleep(1)        #to avoid rejection from calling API too often
     
     return matchIDList
 
@@ -76,6 +76,10 @@ def create_dota_dataframe(matchDetailsList):
     playerAssists = []
     playerGPM = []
     playerXPM = []
+    playerHeroDamage = []
+    playerTowerDamage = []
+    playerLevel = []
+    playerHeroID = []
     gameWonStatus = []
     matchID = []
     matchLength = []
@@ -90,6 +94,10 @@ def create_dota_dataframe(matchDetailsList):
             playerAssists.append(player['assists'])
             playerGPM.append(player['gold_per_min'])
             playerXPM.append(player['xp_per_min'])
+            playerHeroDamage.append(player['hero_damage'])
+            playerTowerDamage.append(player['tower_damage'])
+            playerLevel.append(player['level'])
+            playerHeroID.append(player['hero_id'])
         
             if ((player['player_slot'] == 0) or (player['player_slot'] == 1) or (player['player_slot'] == 2) or (player['player_slot'] == 3) or (player['player_slot'] == 4)) and match['result']['radiant_win'] == True:
                 gameWonStatus.append(1)
@@ -102,7 +110,7 @@ def create_dota_dataframe(matchDetailsList):
             matchCounter.append(1)
 
     #construct dictionary to build data frame
-    referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'GPM': playerGPM, 'XPM': playerXPM, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
+    referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'GPM': playerGPM, 'XPM': playerXPM, 'Hero Damage': playerHeroDamage, 'Tower Damage': playerTowerDamage, 'Level': playerLevel, 'Hero ID': playerHeroID, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
     dataFrameSummary = pd.DataFrame(data=referenceDict)
 
     return dataFrameSummary
@@ -156,7 +164,7 @@ matchDetails = []
 for match in matchIDList:
     rTemp = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=%s&key=%s' % (match, key))
     matchDetails.append(json.loads(rTemp.text))
-    time.sleep(2)
+    time.sleep(1)
 
 matchDetails[:] = [match for match in matchDetails if ('result' in match)]             #removes erroneous matches as some are special matches
 matchDetails[:] = [match for match in matchDetails if ('players' in match['result'])]  #without the same dictionary entries
