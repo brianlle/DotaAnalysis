@@ -9,8 +9,8 @@ parser = argparse.ArgumentParser(description="Pulls Dota 2 API information on ma
 parser.add_argument("-k", "--key", help="Steam API key", required=True)
 args = parser.parse_args()
 
-key = args.key                          #personal Steam WebAPI key
-playerID = '76561198006933710'          #enter Steam playerID to only find matches for that player
+key = args.key                        #personal Steam WebAPI key
+playerID = '46667982'                 #enter Steam playerID to only find matches for that player
 
 def retrieve_match_IDs_by_hero(playerID,key,heroID,startAtMatch='0'):
     '''
@@ -84,6 +84,7 @@ def create_dota_dataframe(matchDetailsList):
     matchID = []
     matchLength = []
     matchCounter = []
+    gameStartTime = []
 
     for match in matchDetailsList:    #construct lists
         for player in match['result']['players']:
@@ -98,7 +99,6 @@ def create_dota_dataframe(matchDetailsList):
             playerTowerDamage.append(player['tower_damage'])
             playerLevel.append(player['level'])
             playerHeroID.append(player['hero_id'])
-        
             if ((player['player_slot'] == 0) or (player['player_slot'] == 1) or (player['player_slot'] == 2) or (player['player_slot'] == 3) or (player['player_slot'] == 4)) and match['result']['radiant_win'] == True:
                 gameWonStatus.append(1)
             elif ((player['player_slot'] == 128) or (player['player_slot'] == 129) or (player['player_slot'] == 130) or (player['player_slot'] == 131) or (player['player_slot'] == 132)) and match['result']['radiant_win'] == False:
@@ -108,9 +108,10 @@ def create_dota_dataframe(matchDetailsList):
             matchID.append(match['result']['match_id'])
             matchLength.append(match['result']['duration'])
             matchCounter.append(1)
+            gameStartTime.append(match['result']['start_time'])
 
     #construct dictionary to build data frame
-    referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'GPM': playerGPM, 'XPM': playerXPM, 'Hero Damage': playerHeroDamage, 'Tower Damage': playerTowerDamage, 'Level': playerLevel, 'Hero ID': playerHeroID, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter}
+    referenceDict = {'Player ID': playerID, 'Player Slot': playerSlot, 'Kills': playerKills, 'Deaths': playerDeaths, 'Assists': playerAssists, 'GPM': playerGPM, 'XPM': playerXPM, 'Hero Damage': playerHeroDamage, 'Tower Damage': playerTowerDamage, 'Level': playerLevel, 'Hero ID': playerHeroID, 'Win Y/N': gameWonStatus, 'Match ID': matchID, 'Match Length (s)': matchLength, 'Match Counter': matchCounter, 'Game Start Time': gameStartTime}
     dataFrameSummary = pd.DataFrame(data=referenceDict)
 
     return dataFrameSummary
@@ -146,19 +147,19 @@ def get_stats(interestedPlayer, dataSummary):
     pinkTotalDeaths = tempDF2.loc[interestedPlayer, 0]['Deaths']
     
     print('Player\'s ID: %s' % interestedPlayer)
-    print('Player\'s win-loss when playing with you: ' + str(tempDF.loc[interestedPlayer,1]['Match Counter']) + '-' + str(tempDF.loc[interestedPlayer,0]['Match Counter']))
+    print('Player\'s win-loss when playing with you: ' + str(tempDF.loc[interestedPlayer,1]['Match Counter']) + '-' + str(tempDF.loc[interestedPlayer,0]['Match Counter']) + ' (' + str(tempDF.loc[interestedPlayer,1]['Match Counter']/(tempDF.loc[interestedPlayer,1]['Match Counter']+tempDF.loc[interestedPlayer,0]['Match Counter'])) + ')')
     print('Player\'s average deaths per minute in wins is %s over %s matches' % (averageDPMinWin, tempDF.loc[interestedPlayer, 1]['Match Counter']))
     print('Player\'s average deaths per minute in losses is %s over %s matches' % (averageDPMinLoss, tempDF.loc[interestedPlayer, 0]['Match Counter']))
     print('Player\'s average game length when winning with you: %s seconds' %averageWinLength)
     print('Player\'s average game length when losing with you: %s seconds' %averageLossLength)
     print('Player\'s average KDA as Blue: %s' % blueKDA)
     print('Player\'s total deaths as Pink: %s' % pinkTotalDeaths)
-    
+
     return None
 
 
 
-matchIDList = retrieve_all_match_IDs('76561198006933710',key)
+matchIDList = retrieve_all_match_IDs(playerID,key)
 
 matchDetails = []
 for match in matchIDList:
