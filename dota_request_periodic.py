@@ -106,9 +106,9 @@ def create_dota_dataframe(matchDetailsList):
             playerTowerDamage.append(player['tower_damage'])
             playerLevel.append(player['level'])
             playerHeroID.append(player['hero_id'])
-            if ((player['player_slot'] == 0) or (player['player_slot'] == 1) or (player['player_slot'] == 2) or (player['player_slot'] == 3) or (player['player_slot'] == 4)) and match['result']['radiant_win'] == True:
+            if player['player_slot'] <= 0 and match['result']['radiant_win'] == True:
                 gameWonStatus.append(1)
-            elif ((player['player_slot'] == 128) or (player['player_slot'] == 129) or (player['player_slot'] == 130) or (player['player_slot'] == 131) or (player['player_slot'] == 132)) and match['result']['radiant_win'] == False:
+            elif player['player_slot'] >= 128 and match['result']['radiant_win'] == False:
                 gameWonStatus.append(1)
             else:
                 gameWonStatus.append(0)
