@@ -167,7 +167,7 @@ def get_stats(interestedPlayer, dataSummary):
 highestMatchPrior = 0
 lowestMatchCurrent = 0
 
-for x in range(0, 35):
+for x in range(0, 45):
 
     print "Loop # %d started" %(x)
 
@@ -187,7 +187,7 @@ for x in range(0, 35):
         rTemp = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=%s&key=%s' % (match, key))
         if len(rTemp.text)>4000:         #sometimes API will fail and won't get the match, so no json to load and would unnecessarily stop the loop
             matchDetails.append(json.loads(rTemp.text))
-        time.sleep(1.5)
+        time.sleep(2)
 
     matchDetails[:] = [match for match in matchDetails if ('result' in match)]             #removes erroneous matches as some are special matches
     matchDetails[:] = [match for match in matchDetails if ('players' in match['result'])]  #without the same dictionary entrie

@@ -109,3 +109,4 @@ ID,NAME
 110,phoenix
 111,oracle
 112,winter_wyvern
+113,arc_warden
