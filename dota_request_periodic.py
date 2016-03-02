@@ -106,7 +106,7 @@ def create_dota_dataframe(matchDetailsList):
             playerTowerDamage.append(player['tower_damage'])
             playerLevel.append(player['level'])
             playerHeroID.append(player['hero_id'])
-            if player['player_slot'] <= 0 and match['result']['radiant_win'] == True:
+            if player['player_slot'] <= 5 and match['result']['radiant_win'] == True:
                 gameWonStatus.append(1)
             elif player['player_slot'] >= 128 and match['result']['radiant_win'] == False:
                 gameWonStatus.append(1)
@@ -166,8 +166,9 @@ def get_stats(interestedPlayer, dataSummary):
 
 highestMatchPrior = 0
 lowestMatchCurrent = 0
+matchIDListRunning = []
 
-for x in range(0, 45):
+for x in range(0, 100):
 
     print "Loop # %d started" %(x)
 
@@ -176,11 +177,10 @@ for x in range(0, 45):
     
     lowestMatchCurrent = int(matchIDList[-1])
     for matchNumber in matchIDListClone:
-        if int(matchNumber) >= lowestMatchCurrent:
-            if int(matchNumber) <= highestMatchPrior:
-                matchIDList.remove(matchNumber)
-
-    time.sleep(1)
+        if matchNumber in matchIDListRunning:   #remove matches already called
+            matchIDList.remove(matchNumber)
+    matchIDListRunning = matchIDListRunning + matchIDList   #update list of matches already called
+    time.sleep(2)
 
     matchDetails = []
     for match in matchIDList:
