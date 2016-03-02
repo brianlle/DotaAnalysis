@@ -9,7 +9,7 @@ ID,NAME
 8,juggernaut
 9,mirana
 10,morphling
-11,nevermore
+11,shadow_fiend
 12,phantom_lancer
 13,puck
 14,pudge
