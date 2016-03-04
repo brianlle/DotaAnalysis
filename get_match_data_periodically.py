@@ -39,28 +39,28 @@ def retrieve_match_IDs_by_game_type(key,game_mode,skill,startAtMatch='0'):
     for match in resultJ['result']['matches']:
         matchIDList.append(match['match_id'])
     
-    time.sleep(1)
+    time.sleep(1.5)
     newStart = matchIDList[-1]-1
     r = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?matches_requested=100&key=%s&game_mode=%s&skill=%s&start_at_match_id=%s&min_players=10' % (key, game_mode, skill, newStart))
     resultJ = json.loads(r.text)
     for match in resultJ['result']['matches']:
         matchIDList.append(match['match_id'])
 
-    time.sleep(1)
+    time.sleep(1.5)
     newStart = matchIDList[-1]-1
     r = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?matches_requested=100&key=%s&game_mode=%s&skill=%s&start_at_match_id=%s&min_players=10' % (key, game_mode, skill, newStart))
     resultJ = json.loads(r.text)
     for match in resultJ['result']['matches']:
         matchIDList.append(match['match_id'])
         
-    time.sleep(1)
+    time.sleep(1.5)
     newStart = matchIDList[-1]-1
     r = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?matches_requested=100&key=%s&game_mode=%s&skill=%s&start_at_match_id=%s&min_players=10' % (key, game_mode, skill, newStart))
     resultJ = json.loads(r.text)
     for match in resultJ['result']['matches']:
         matchIDList.append(match['match_id'])
         
-    time.sleep(1)
+    time.sleep(1.5)
     newStart = matchIDList[-1]-1
     r = requests.get('https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?matches_requested=100&key=%s&game_mode=%s&skill=%s&start_at_match_id=%s&min_players=10' % (key, game_mode, skill, newStart))
     resultJ = json.loads(r.text)
