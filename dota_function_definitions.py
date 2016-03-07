@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#Packages requ
+
 
 from __future__ import division
 import numpy as np
@@ -20,6 +20,12 @@ def create_dota_dataframe2(matchDetailsList):
     the match ID number, and the length of the match. Information
     is to be used for modelling match outcomes based on drafts
     (the heroes present in the game)
+    
+    Inputs:
+    matchDetailsList: list of JSONs
+    
+    Outputs:
+    dataFrameSummary: a pandas dataframe
     '''
 
     radiant1 = []                 #initialize lists for stats of interest
@@ -98,6 +104,12 @@ def create_dota_dataframe(matchDetailsList):
     1 row per player (10 rows per match); records most
     information retrievable from Steam API information, except
     item and ability information
+    
+    Inputs:
+    matchDetailsList: list of JSONs
+    
+    Outputs:
+    dataFrameSummary: a pandas dataframe
     '''
 
     playerID = []                 #initialize lists for stats of interest
@@ -154,6 +166,24 @@ def create_dota_dataframe(matchDetailsList):
 
 
 def getWinRateArray(dataFrame):
+    
+    '''
+    From a dataframe of match information constructed using
+    create_dota_dataframe2(), creates and populates two 2D
+    arrays consisting of win rate information (single hero
+    and pairwise) and match sample size information (single
+    hero and pairwise).
+    
+    Inputs:
+    dataFrame: a pandas dataframe with columns 'Radiant #'
+    and 'Dire #', where # is in [0-4].
+    
+    Outputs:
+    winRateArray: 2D array (technically a list of lists of floats)
+    matchCountArray: 2D array (list of lists of floats)
+    
+    
+    '''
     
     heroIDs = range(0,114)
     heroIDs.remove(24)
@@ -233,6 +263,24 @@ def getSynergyFactor(teamHeroArray, winRateArray, mcArray, tuning):
 
 def predictWinRate(testDataFrame, wrArray, matchCountArray, tuning):
 
+    '''
+    Takes in dataframe and input arrays, calculates synergy factors for both teams in each
+    match and predicts the winner for each match in the dataframe.
+    
+    Inputs:
+    testDataFrame (dataframe): Dataframe of matches from create_dota_dataframe2()
+    winRateArray: 2d array of pair-wise winrates retrieved from getWinRateArray()
+    mcArray: 2d array of pair-wise match counts retrieved from getWinRateArray()
+    tuning: b/a factor for mathematical model determining team synergy; for same b/a, different b and a return same results
+            tuning = 1 means weigh individual winrates equally with pairwise win rates
+                (factor of 1/2 in calculations below is due to counting both wr_ij and wr_ji, effectively double counting)
+    
+    Output:
+    percentCorrect (float): Percentage of matches predicted correctly using model
+        
+    '''
+
+
     numberPredictions = 0
     correctPredictions = 0
     highestSynergyFactor = 0
@@ -278,6 +326,23 @@ def predictWinRate(testDataFrame, wrArray, matchCountArray, tuning):
 
 def getWinRateOpposingTeamArray(dataFrame):
     
+    '''
+    From a dataframe of match information constructed using
+    create_dota_dataframe2(), creates and populates two 2D
+    arrays consisting of win rate information when heroes are
+    on opposing teams as well as match sample size information.
+    
+    Inputs:
+    dataFrame: a pandas dataframe with columns 'Radiant #'
+    and 'Dire #', where # is in [0-4].
+    
+    Outputs:
+    winRateArray: 2D array (technically a list of lists of floats)
+    matchCountArray: 2D array (list of lists of floats)
+    
+    
+    ''' 
+    
     heroIDs = range(0,114)
     heroIDs.remove(24)
     heroIDs.remove(108)
@@ -317,11 +382,17 @@ def getWinRateOpposingTeamArray(dataFrame):
     return winRateArray, matchCountArray
 
 def getAdvantageFactor(radHeroArray, direHeroArray, wrArray, mcArray, wrOpposingTeamArray, mcOpposingTeamArray, tuning=1):
-    
+
     '''
     Takes in input arrays and returns a value that decides the advantage that the Radiant team
     has based on how their heroes have fared against Dire heroes in past games.
     
+    Inputs:
+    teamHeroArray (list): List of 5 heroes on the same team
+    winRateArray: 2d array of pair-wise winrates retrieved from getWinRateArray()
+    mcArray: 2d array of pair-wise match counts retrieved from getWinRateArray()
+    wrOpposingTeamArray: 2d array of opposite team winrates from getWinRateOpposingTeamArray()
+    mcOpposingTeamArray: 2d array of opposite team match counts from getWinRateOpposingTeamArray()
     tuning: Changes the amount of impact advantage factors have on results
             For tuning = 1, radiantAdvantage = 1 - DireAdvantage (e.g. 0.55, 0.45)
             For tuning = x, adjRadiantAdvantage = radiantAdvantage^x, wat if direAdv goes negative ._.
@@ -347,6 +418,25 @@ def getAdvantageFactor(radHeroArray, direHeroArray, wrArray, mcArray, wrOpposing
 
 
 def predictWinRateRefined(testDataFrame, wrArray, mcArray, wrOpposingTeamArray, mcOpposingTeamArray, b, c):
+
+    '''
+    Takes in dataframe and input arrays, calculates synergy factors for both teams in each
+    match and predicts the winner for each match in the dataframe.
+    
+    Inputs:
+    testDataFrame (dataframe): Dataframe of matches from create_dota_dataframe2()
+    winRateArray: 2d array of pair-wise winrates retrieved from getWinRateArray()
+    mcArray: 2d array of pair-wise match counts retrieved from getWinRateArray()
+    wrOpposingTeamArray: 2d array of opposite team winrates from getWinRateOpposingTeamArray()
+    mcOpposingTeamArray: 2d array of opposite team match counts from getWinRateOpposingTeamArray()
+    b: b/a factor for mathematical model determining team synergy; for same b/a, different b and a return same results
+            tuning = 1 means weigh individual winrates equally with pairwise win rates
+                (factor of 1/2 in calculations below is due to counting both wr_ij and wr_ji, effectively double counting)
+    c: c factor for mathematical model determining team advantage
+    
+    Output:
+    percentCorrect (float): Percentage of matches predicted correctly using model
+    '''
 
     numberPredictions = 0
     correctPredictions = 0
@@ -391,6 +481,27 @@ def predictWinRateRefined(testDataFrame, wrArray, mcArray, wrOpposingTeamArray, 
 
 
 def suggestHero(yourTeam, enemyTeam, wrArray, mcArray, wrOpposingTeamArray, mcOpposingTeamArray, heroDict, b=1, c=1):
+    
+    '''
+    Suggests top three potential hero choices to give your team an advantage
+    against the enemy team depending on team compositions.
+    
+    Inputs:
+    yourTeam: list of heroes currently on your team
+    enemyTeam: list of heroes currently on the enemy team
+    winRateArray: 2d array of pair-wise winrates retrieved from getWinRateArray()
+    mcArray: 2d array of pair-wise match counts retrieved from getWinRateArray()
+    wrOpposingTeamArray: 2d array of opposite team winrates from getWinRateOpposingTeamArray()
+    mcOpposingTeamArray: 2d array of opposite team match counts from getWinRateOpposingTeamArray()
+    b: b/a factor for mathematical model determining team synergy; for same b/a, different b and a return same results
+            tuning = 1 means weigh individual winrates equally with pairwise win rates
+                (factor of 1/2 in calculations below is due to counting both wr_ij and wr_ji, effectively double counting)
+    c: c factor for mathematical model determining team advantage
+    heroDict: dict corresponding hero IDs to hero names. 111 heroes from 1 to 113,
+              excluding 24 and 108 (IDs currently unused in game)    
+    
+    '''
+    
     
     recommendedHero = [[0,0]]
     heroIDList = range(1,114)
